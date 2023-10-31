@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id         String      @id @default(cuid())
+  name       String      @db.VarChar(100)
+  loginusers Loginuser[]
+
+  @@map("company")
+}
+
+model Loginuser {
+  id             String          @id @default(cuid())
+  name           String          @db.VarChar(100)
+  company        Company?        @relation(fields: [companyId], references: [id])
+  companyId      String          @map("company_id")
+  roleScreens    RoleScreen[]
+  loginuserRoles LoginuserRole[]
+
+  @@map("loginuser")
+}
+
+model Role {
+  id             String          @id @default(cuid())
+  name           String          @db.VarChar(100)
+  roleScreens    RoleScreen[]
+  loginuserRoles LoginuserRole[]
+
+  @@map("role")
+}
+
+model Screen {
+  id              String            @id @default(cuid())
+  name            String            @db.VarChar(100)
+  screenComponent ScreenComponent[]
+  roleScreens     RoleScreen[]
+
+  @@map("screen")
+}
+
+model Component {
+  id               String            @id @default(cuid())
+  name             String            @db.VarChar(100)
+  screenComponents ScreenComponent[]
+
+  @@map("component")
+}
+
+model RoleScreen {
+  role        Role       @relation(fields: [roleId], references: [id])
+  roleId      String     @map("role_id")
+  screen      Screen     @relation(fields: [screenId], references: [id])
+  screenId    String     @map("screen_id")
+  Loginuser   Loginuser? @relation(fields: [loginuserId], references: [id])
+  loginuserId String?
+
+  @@id([roleId, screenId])
+  @@map("role_screen")
+}
+
+model ScreenComponent {
+  screen      Screen    @relation(fields: [screenId], references: [id])
+  screenId    String    @map("screen_id")
+  component   Component @relation(fields: [componentId], references: [id])
+  componentId String    @map("component_id")
+
+  @@id([screenId, componentId])
+  @@map("screen_component")
+}
+
+model LoginuserRole {
+  role        Role      @relation(fields: [roleId], references: [id])
+  roleId      String    @map("role_id")
+  loginuser   Loginuser @relation(fields: [loginuserId], references: [id])
+  loginuserId String    @map("loginuser_id")
+
+  @@id([roleId, loginuserId])
+  @@map("loginuser_role")
+}
